@@ -1,26 +1,26 @@
-# Usa un entorno base con JDK
+# Primera etapa: Construir el proyecto con Maven
 FROM maven:3.8.5-openjdk-17 AS build
 
-# Copia el código fuente de Keycloak al contenedor
+# Copiar el código fuente de Keycloak
 COPY . /keycloak
 
-# Cambia al directorio del proyecto
+# Cambiar al directorio del proyecto
 WORKDIR /keycloak
 
-# Compila el código y construye el proyecto
+# Construir el proyecto usando Maven
 RUN mvn clean install -DskipTests
 
-# Usa la imagen base de Keycloak para la ejecución
+# Segunda etapa: Usar la imagen base oficial de Keycloak
 FROM quay.io/keycloak/keycloak:latest
 
-# Copia el artefacto construido al contenedor final
-COPY --from=build /keycloak/dist /opt/keycloak
+# Copiar los artefactos construidos al contenedor final
+COPY --from=build /keycloak/quarkus-app/ /opt/keycloak/
 
-# Cambiar al usuario keycloak
+# Cambiar al usuario de Keycloak
 USER keycloak
 
-# Expone el puerto predeterminado
-EXPOSE 9090
+# Exponer el puerto predeterminado
+EXPOSE 8080
 
 # Comando para iniciar Keycloak
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start-dev"]
